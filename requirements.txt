@@ -1,0 +1,25 @@
+# Runtime dependencies, pinned to the exact set verified locally, in CI and on
+# Streamlit Community Cloud so the environment is fully reproducible.
+# Target: Python 3.12.
+
+# --- core data / ML ---
+numpy==2.0.2
+pandas==2.2.3
+scipy==1.14.1
+scikit-learn==1.5.2
+xgboost==2.1.4
+
+# --- explainability ---
+# shap pulls in numba + llvmlite; those two are version-sensitive, so they are
+# pinned explicitly to the pair that builds cleanly on py3.12.
+shap==0.46.0
+numba==0.66.0
+llvmlite==0.48.0
+
+# --- plotting ---
+matplotlib==3.9.4
+seaborn==0.13.2
+
+# --- app / misc ---
+streamlit==1.59.1
+joblib==1.4.2

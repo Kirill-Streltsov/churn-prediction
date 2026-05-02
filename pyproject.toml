@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "churn-prediction"
+version = "0.1.0"
+description = "Telco customer churn prediction with XGBoost and SHAP explainability"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Kirill Streltsov" }]
+
+[tool.setuptools]
+packages = ["churn"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+# Notebooks use IPython magics and imports-after-magic by design.
+extend-exclude = ["notebooks", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = [
+    # Third-party deprecation noise (matplotlib/shap/numba internals).
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
