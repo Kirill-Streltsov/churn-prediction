@@ -66,3 +66,18 @@ def grouped_importance(explanation: shap.Explanation) -> pd.Series:
                 break
         groups[group] = groups.get(group, 0.0) + float(value)
     return pd.Series(groups).sort_values(ascending=False)
+
+
+def hide_waterfall_output_axis(fig) -> None:
+    """Work around a SHAP 0.46 rendering bug in ``shap.plots.waterfall``.
+
+    The waterfall draws the model output on a secondary top axis, but sets *both*
+    of that axis' tick labels to the value string instead of ``f(x)`` + value.
+    The two identical labels sit at the same position and overlap into garbled
+    text (e.g. ``= -0.741741``). The output value is shown elsewhere in the UI
+    (the churn probability), so we simply hide that broken axis.
+    """
+    for ax in fig.axes:
+        labels = [t.get_text() for t in ax.get_xticklabels()]
+        if len(labels) == 2 and labels[0] == labels[1] and labels[0].startswith("$ ="):
+            ax.set_visible(False)

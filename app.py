@@ -160,7 +160,8 @@ with tab_predict:
     single = explain.shap_explanation(bundle["pipe"], x)
     shap.plots.waterfall(single[0], max_display=10, show=False)
     fig = plt.gcf()
-    fig.set_size_inches(8, 4)
+    explain.hide_waterfall_output_axis(fig)
+    fig.set_size_inches(8, 4.2)
     st.pyplot(fig, clear_figure=True)
 
     # Simple rule-of-thumb retention suggestions tied to the biggest levers.
