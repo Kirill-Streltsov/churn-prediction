@@ -4,7 +4,7 @@ A small project that predicts which telecom customers are likely to cancel, and
 explains why. It uses the Telco Customer Churn dataset (about 7,000 customers),
 compares a few models, and ships a Streamlit app you can click around in.
 
-Live demo: https://churn-prediction-kirill.streamlit.app
+Live demo: https://churn-prediction-gkwwmqybjgyutypa3d44ys.streamlit.app
 
 I built this to practice a full tabular ML workflow: cleaning the data,
 engineering features, comparing models with cross-validation, tuning the
