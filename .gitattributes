@@ -1,0 +1,4 @@
+# The notebooks carry embedded output images, which makes them dominate GitHub's
+# byte-based language stats. Treat them as documentation so the language bar
+# reflects the actual Python codebase.
+*.ipynb linguist-documentation
