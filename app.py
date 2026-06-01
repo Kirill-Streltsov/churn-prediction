@@ -278,8 +278,4 @@ with tab_explain:
     )
 
 st.divider()
-st.caption(
-    "Built with pandas, scikit-learn, XGBoost, SHAP and Streamlit. It is an "
-    "educational demo on a public dataset, so check results before acting on any "
-    "single prediction."
-)
+st.caption("Built with pandas, scikit-learn, XGBoost, SHAP and Streamlit.")
