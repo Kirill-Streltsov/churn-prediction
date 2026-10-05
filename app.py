@@ -132,7 +132,9 @@ with tab_predict:
         Contract=contract,
         tenure=tenure,
         MonthlyCharges=monthly,
-        TotalCharges=monthly * tenure,
+        # A brand-new customer (tenure 0) has a blank TotalCharges in the raw
+        # data; mirror that so the missing-value flag is set as in training.
+        TotalCharges=monthly * tenure if tenure > 0 else float("nan"),
         InternetService=internet,
         PaymentMethod=payment,
         OnlineSecurity=online_security,
