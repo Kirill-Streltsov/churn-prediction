@@ -1,6 +1,7 @@
 """Tests for model building, cross-validation, threshold tuning and scoring."""
 
 import numpy as np
+from sklearn.metrics import roc_auc_score
 
 from churn import model
 
@@ -42,3 +43,19 @@ def test_evaluate_reports_all_metrics(fitted_xgb):
     scores = model.evaluate(y_test, proba, threshold=0.5)
     assert set(scores) == {"roc_auc", "precision", "recall", "f1", "threshold"}
     assert all(np.isfinite(v) for v in scores.values())
+
+
+def test_calibrator_matches_churn_rate_and_keeps_ranking(split):
+    X_train, _, y_train, _ = split
+    pipe = model.build_models()["XGBoost"]
+    oof = model.oof_proba(pipe, X_train, y_train, n_splits=3)
+    calibrator = model.fit_calibrator(y_train.to_numpy(), oof)
+    calibrated = calibrator.transform(oof)
+    # The class weights inflate the raw scores; calibration brings the average
+    # back to the real churn rate...
+    assert oof.mean() > y_train.mean() + 0.05
+    assert abs(calibrated.mean() - y_train.mean()) < 0.01
+    # ...without changing the order of customers (so ROC-AUC is unchanged).
+    order = np.argsort(oof)
+    assert (np.diff(calibrated[order]) >= 0).all()
+    assert roc_auc_score(y_train, calibrated) == roc_auc_score(y_train, oof)

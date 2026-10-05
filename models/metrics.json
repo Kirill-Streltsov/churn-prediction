@@ -67,5 +67,15 @@
     "recall": 0.7459893048128342,
     "f1": 0.6384439359267735,
     "threshold": 0.5687690377235413
+  },
+  "calibration": {
+    "coef": 0.9727893839629673,
+    "intercept": -0.9344555441969086,
+    "threshold_calibrated": 0.3395819693114669,
+    "test_churn_rate": 0.2654364797728886,
+    "test_mean_raw": 0.40405142307281494,
+    "test_mean_calibrated": 0.2685929284013487,
+    "test_brier_raw": 0.16169276012117054,
+    "test_brier_calibrated": 0.1354301510590356
   }
 }

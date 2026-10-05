@@ -44,6 +44,7 @@ def load_bundle():
 
     oof = model.oof_proba(pipe, X_train, y_train)
     tuned = model.tune_threshold(y_train.to_numpy(), oof)
+    calibrator = model.fit_calibrator(y_train.to_numpy(), oof)
 
     proba_test = pipe.predict_proba(X_test)[:, 1]
     test_metrics = model.evaluate(y_test, proba_test, threshold=tuned.threshold)
@@ -51,6 +52,8 @@ def load_bundle():
     return {
         "pipe": pipe,
         "threshold": tuned.threshold,
+        "threshold_prob": float(calibrator.transform(tuned.threshold)),
+        "calibrator": calibrator,
         "tuned": tuned,
         "test_metrics": test_metrics,
         "explanation": explanation,
@@ -83,7 +86,11 @@ c1, c2, c3, c4 = st.columns(4)
 c1.metric("Customers", f"{len(frame):,}")
 c2.metric("Overall churn rate", f"{frame[config.TARGET].mean() * 100:.1f}%")
 c3.metric("Test ROC-AUC", f"{roc:.3f}")
-c4.metric("Decision threshold", f"{bundle['threshold']:.2f}")
+c4.metric(
+    "Flagged at",
+    f"≥ {bundle['threshold_prob'] * 100:.0f}% risk",
+    help="F1-tuned decision threshold, on the calibrated probability scale.",
+)
 
 tab_predict, tab_eda, tab_models, tab_explain = st.tabs(
     ["🔮 Predict", "📊 Data & EDA", "🤖 Models", "🧠 Explainability"]
@@ -136,9 +143,13 @@ with tab_predict:
     )
     x = features.engineer(pd.DataFrame([row]))[features.FEATURE_COLUMNS]
 
-    proba = float(bundle["pipe"].predict_proba(x)[:, 1][0])
-    threshold = bundle["threshold"]
-    will_churn = proba >= threshold
+    # The decision uses the raw model score and the tuned threshold; the number
+    # shown is the calibrated probability. Calibration is monotonic, so both
+    # describe exactly the same cut.
+    score = float(bundle["pipe"].predict_proba(x)[:, 1][0])
+    will_churn = score >= bundle["threshold"]
+    proba = float(bundle["calibrator"].transform(score))
+    threshold = bundle["threshold_prob"]
 
     st.divider()
     m1, m2 = st.columns([1, 2])
@@ -151,12 +162,18 @@ with tab_predict:
     with m2:
         st.progress(min(proba, 1.0))
         st.caption(
-            f"Flagged when probability ≥ tuned threshold ({threshold:.2f}). "
-            "The threshold was tuned on out-of-fold training data to balance "
-            "precision and recall on the churn class."
+            f"Flagged when the churn probability is {threshold * 100:.0f}% or "
+            "more. The cut-off was tuned on out-of-fold training data to "
+            "maximise F1 on the churn class. The model is trained with class "
+            "weights, which inflate its raw scores, so they are rescaled (Platt "
+            "calibration) to read as real probabilities."
         )
 
     st.markdown("**Why this prediction?**")
+    st.caption(
+        "SHAP contributions to the model's raw score, in log-odds. Red pushes "
+        "towards churn, blue towards staying."
+    )
     single = explain.shap_explanation(bundle["pipe"], x)
     shap.plots.waterfall(single[0], max_display=10, show=False)
     fig = plt.gcf()

@@ -21,6 +21,8 @@ SHAP.
   stratified cross-validation.
 - Tunes the decision threshold on out-of-fold predictions instead of leaving it
   at 0.5, which matters when only about a quarter of customers churn.
+- Calibrates the scores (Platt scaling on the same out-of-fold predictions), so
+  the churn probability the app shows matches the real churn rate.
 - Explains the model with SHAP, both overall and for a single customer in the app.
 
 ## Results
@@ -38,6 +40,12 @@ F1-tuned threshold lands at about 0.57 rather than below 0.5. Against the
 default 0.5 cutoff that raises precision from 0.52 to 0.56 and F1 from 0.63 to
 0.64, for a small drop in recall (0.79 to 0.75): fewer retention offers go to
 customers who would have stayed anyway.
+
+The class weights also mean the raw scores overstate risk: on the test set they
+average 0.40 against a real churn rate of 0.27. The app therefore shows
+calibrated probabilities (average 0.27, Brier score 0.162 down to 0.135). The
+calibration is monotonic, so the ranking, ROC-AUC and every flag stay the same;
+on that scale the tuned threshold is about 34% churn risk.
 
 One honest note about the number: on a clean split this dataset tops out around
 0.85 ROC-AUC. Scores much higher than that usually mean something leaked between

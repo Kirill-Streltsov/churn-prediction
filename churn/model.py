@@ -190,6 +190,36 @@ def tune_threshold(y_true: np.ndarray, y_proba: np.ndarray) -> ThresholdResult:
     )
 
 
+def _logit(proba: np.ndarray) -> np.ndarray:
+    proba = np.clip(np.asarray(proba, dtype=float), 1e-6, 1 - 1e-6)
+    return np.log(proba / (1 - proba))
+
+
+@dataclass
+class Calibrator:
+    """Platt scaling that turns the model's scores into real probabilities.
+
+    The class weights train the model as if churners were ~2.8x more common, so
+    its raw ``predict_proba`` overstates risk (mean ~0.40 against a true churn
+    rate of ~0.27). A one-feature logistic regression on the log-odds undoes
+    that shift. It is strictly increasing, so the ranking (ROC-AUC) and every
+    threshold decision stay exactly the same; only the numbers shown change.
+    """
+
+    coef: float
+    intercept: float
+
+    def transform(self, proba: np.ndarray | float) -> np.ndarray:
+        return 1 / (1 + np.exp(-(self.coef * _logit(proba) + self.intercept)))
+
+
+def fit_calibrator(y_true: np.ndarray, y_proba: np.ndarray) -> Calibrator:
+    """Fit Platt scaling on out-of-fold probabilities (never on the test set)."""
+    # Large C = effectively no regularisation on the two calibration parameters.
+    lr = LogisticRegression(C=1e6).fit(_logit(y_proba).reshape(-1, 1), y_true)
+    return Calibrator(coef=float(lr.coef_[0, 0]), intercept=float(lr.intercept_[0]))
+
+
 def evaluate(
     y_true: np.ndarray, y_proba: np.ndarray, threshold: float = 0.5
 ) -> dict[str, float]:
