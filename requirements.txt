@@ -22,4 +22,7 @@ seaborn==0.13.2
 
 # --- app / misc ---
 streamlit==1.59.1
+# pyarrow comes in through streamlit. 25.0.0 segfaults when streamlit converts a
+# cached DataFrame for a chart on the second script run, so it is held at 24.
+pyarrow==24.0.0
 joblib==1.4.2
