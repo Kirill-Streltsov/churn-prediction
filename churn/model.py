@@ -163,9 +163,10 @@ class ThresholdResult:
 def tune_threshold(y_true: np.ndarray, y_proba: np.ndarray) -> ThresholdResult:
     """Pick the probability threshold that maximises F1 on the churn class.
 
-    The default 0.5 cut-off is rarely optimal on an imbalanced target; tuning
-    the threshold trades a little precision for the recall that actually
-    matters for a retention campaign.
+    The default 0.5 cut-off is rarely optimal on an imbalanced target. Here the
+    class weights already push the scores up, so the F1-optimal cut-off lands
+    above 0.5: tuning gives up a little recall for noticeably better precision,
+    i.e. fewer retention offers wasted on customers who would have stayed.
     """
     precision, recall, thresholds = precision_recall_curve(y_true, y_proba)
     # precision_recall_curve returns one extra point with no threshold.

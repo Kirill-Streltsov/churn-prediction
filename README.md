@@ -33,9 +33,11 @@ set:
 - XGBoost: 0.846
 
 I ship XGBoost. It has the best held-out score, and being tree-based it gives
-exact SHAP explanations. After tuning the threshold to about 0.57 it gets
-precision 0.56, recall 0.75 and F1 0.64 on the churn class, which catches a lot
-more churners than the default 0.5 cutoff.
+exact SHAP explanations. The class weights already push its scores up, so the
+F1-tuned threshold lands at about 0.57 rather than below 0.5. Against the
+default 0.5 cutoff that raises precision from 0.52 to 0.56 and F1 from 0.63 to
+0.64, for a small drop in recall (0.79 to 0.75): fewer retention offers go to
+customers who would have stayed anyway.
 
 One honest note about the number: on a clean split this dataset tops out around
 0.85 ROC-AUC. Scores much higher than that usually mean something leaked between
